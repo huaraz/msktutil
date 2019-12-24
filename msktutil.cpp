@@ -39,7 +39,7 @@
 
 /* GLOBALS */
 
-int g_verbose = 0;
+int g_verbose = 2;
 
 /* Fatal error */
 void error_exit( const char *text) {
@@ -461,6 +461,9 @@ void do_help()
     fprintf(stdout, "  -n, --no-canonical-name\n");
     fprintf(stdout, "                         Do not attempt to canonicalize hostname while\n");
     fprintf(stdout, "                         creating Kerberos principal(s).\n");
+    fprintf(stdout, "  --use-what-is-given\n");
+    fprintf(stdout, "                         Do not attempt to use other service principals\n");
+    fprintf(stdout, "                         then given on the comman line e.g. host, XX$.\n");
     fprintf(stdout, "  --user-creds-only      Don't attempt to authenticate with machine keytab:\n");
     fprintf(stdout, "                         only use user's credentials (from e.g. kinit).\n");
     fprintf(stdout, "  --auto-update-interval <days>\n");
@@ -654,7 +657,7 @@ int execute(msktutil_exec *exec, msktutil_flags *flags)
                 ret = set_password(flags);
                 if (ret) {
                     fprintf(stderr, "Error: set_password failed\n");
-                    if (flags->use_service_account) {
+                    if (flags->use_service_account) { 
                         fprintf(stderr,
                                 "Hint: Does your password policy allow to "
                                 "change %s's password?\n",
@@ -831,6 +834,9 @@ int main(int argc, char *argv [])
         if (!strcmp(argv[i], "--service") || !strcmp(argv[i], "-s")) {
             if (++i < argc) {
                 exec->add_principals.push_back(argv[i]);
+                if (strchr(argv[i],'/')) {
+                    flags->servicePrincipalName = argv[i];
+		}
             } else {
                 fprintf(stderr,
                         "Error: No service principal given after '%s'\n",
@@ -873,6 +879,12 @@ int main(int argc, char *argv [])
         if (!strcmp(argv[i], "--no-canonical-name") ||
             !strcmp(argv[i], "-n")) {
             flags->no_canonical_name = true;
+            continue;
+        }
+
+        /* no canonical name */
+        if (!strcmp(argv[i], "--use-what-is-given")) {
+            flags->use_what_is_given = true;
             continue;
         }
 
@@ -1275,7 +1287,8 @@ int main(int argc, char *argv [])
         }
     }
 
-    if (exec->mode == MODE_CREATE && !flags->use_service_account) {
+    if (exec->mode == MODE_CREATE && !flags->use_service_account && 
+	!flags->use_what_is_given) {
         exec->add_principals.push_back("host");
     }
 
@@ -1336,6 +1349,7 @@ msktutil_flags::msktutil_flags() :
     set_userPrincipalName(false),
     no_reverse_lookups(false),
     no_canonical_name(false),
+    use_what_is_given(false),
     server_behind_nat(false),
     set_samba_secret(false),
     samba_cmd(DEFAULT_SAMBA_CMD),

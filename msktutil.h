@@ -178,6 +178,7 @@ public:
     std::string password;
     bool password_from_cmdline;
     std::string userPrincipalName;
+    std::string servicePrincipalName;
     std::string old_account_password;
     std::string site;
     LDAPConnection* ldap;
@@ -188,6 +189,7 @@ public:
     bool set_userPrincipalName;
     bool no_reverse_lookups;
     bool no_canonical_name;
+    bool use_what_is_given;
     bool server_behind_nat;
     bool set_samba_secret;
     std::string samba_cmd;

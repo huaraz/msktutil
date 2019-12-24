@@ -327,7 +327,12 @@ int find_working_creds(msktutil_flags *flags)
      *    cache.
     */
     if (!flags->user_creds_only) {
-        std::string host_princ = "host/" + flags->hostname;
+        std::string host_princ;
+        if (flags->use_what_is_given && !flags->servicePrincipalName.empty()) {
+            host_princ = flags->servicePrincipalName;
+	} else {
+            host_princ = "host/" + flags->hostname;
+	}
         /*
          * NOTE: we have to use an actual file for the credential
          * cache, and not a MEMORY: type, because libsasl may be using

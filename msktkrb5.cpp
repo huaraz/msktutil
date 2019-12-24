@@ -304,8 +304,10 @@ void add_keytab_entries(msktutil_flags *flags)
 void update_keytab(msktutil_flags *flags)
 {
     VERBOSE("Updating all entries for %s", flags->sAMAccountName.c_str());
-    add_principal_keytab(flags->sAMAccountName, flags);
-    if (!flags->use_service_account) {
+    if (!flags->use_what_is_given) {
+        add_principal_keytab(flags->sAMAccountName, flags);
+    }
+    if (!flags->use_service_account && !flags->use_what_is_given) {
         add_principal_keytab(flags->sAMAccountName_uppercase, flags);
     }
     /* add upn */
@@ -313,7 +315,7 @@ void update_keytab(msktutil_flags *flags)
         add_principal_keytab(flags->userPrincipalName, flags);
     }
     /* add host/<short_hostname> */
-    if (!flags->use_service_account) {
+    if (!flags->use_service_account && !flags->use_what_is_given) {
         add_principal_keytab("host/" + get_short_hostname(flags), flags);
     }
     for (size_t i = 0; i < flags->ad_principals.size(); ++i) {
