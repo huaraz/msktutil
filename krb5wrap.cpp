@@ -228,6 +228,9 @@ void KRB5Keytab::addEntry(const KRB5Principal &princ,
 #endif
 
     addEntry(princ, kvno, keyblock);
+    keyblock.enctype = 0;
+    if (keyblock.contents != NULL)
+        krb5_free_keyblock_contents(g_context, &keyblock);
 }
 
 
