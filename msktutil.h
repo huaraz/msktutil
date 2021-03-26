@@ -49,7 +49,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/utsname.h>
 #include <ldap.h>
 #include <list>
 
@@ -100,7 +99,7 @@
 #define UF_USE_DES_KEY_ONLY             0x00200000
 #define UF_NO_AUTH_DATA_REQUIRED        0x02000000
 
-/* for msDs-supportedEncryptionTypes  bit defines */
+/* for msDs-supportedEncryptionTypes bit defines */
 #define MS_KERB_ENCTYPE_DES_CBC_CRC             0x01
 #define MS_KERB_ENCTYPE_DES_CBC_MD5             0x02
 #define MS_KERB_ENCTYPE_RC4_HMAC_MD5            0x04
@@ -118,11 +117,29 @@
 #define MS_KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96 0
 #endif
 
+#define MS_KERB_DES_ENCTYPES \
+    ( MS_KERB_ENCTYPE_DES_CBC_CRC | \
+      MS_KERB_ENCTYPE_DES_CBC_MD5 )
+
+#define DEFAULT_MS_KERB_ENCTYPES \
+    ( MS_KERB_ENCTYPE_RC4_HMAC_MD5 | \
+      MS_KERB_ENCTYPE_AES128_CTC_HMAC_SHA1_96 | \
+      MS_KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96 )
+
+#define ALL_MS_KERB_ENCTYPES \
+    ( MS_KERB_DES_ENCTYPES | \
+      MS_KERB_ENCTYPE_RC4_HMAC_MD5 | \
+      MS_KERB_ENCTYPE_AES128_CTC_HMAC_SHA1_96 | \
+      MS_KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96 )
+
 /* Some KVNO Constansts */
 #define KVNO_FAILURE                    -1
 #define KVNO_WIN_2000                   0
 
 #define DEFAULT_SAMBA_CMD "net changesecretpw -f -i"
+
+/* Default candidate SASL mechanisms */
+#define DEFAULT_SASL_MECHANISMS "GSS-SPNEGO GSSAPI"
 
 /* Ways we can authenticate */
 enum auth_types {
@@ -213,6 +230,7 @@ public:
     bool allow_weak_crypto;
     bool password_expired;
     int auto_update_interval;
+    std::string sasl_mechanisms;
     krb5_kvno kvno;
     int cleanup_days;
     int cleanup_enctype;
@@ -282,7 +300,6 @@ extern int ldap_add_principal(const std::string &, msktutil_flags *);
 int ldap_remove_principal(const std::string &principal, msktutil_flags *flags);
 extern std::string get_dc_host(const std::string &realm_name, const std::string &site_name,
                                const bool);
-extern std::string get_host_os();
 extern bool ldap_check_account(msktutil_flags *);
 extern void ldap_create_account(msktutil_flags *);
 extern void create_fake_krb5_conf(msktutil_flags *);

@@ -138,16 +138,15 @@ bool DnsSrvHost::validate(bool nocanon, std::string service) {
     int ret, sock = -1;
     /* used to call into C function, so we prefer char[] over std::string */
     char host[NI_MAXHOST];
-    struct addrinfo *hostaddrinfo = NULL, hints = {
-        .ai_flags = 0,
-        .ai_family = AF_UNSPEC,
-        .ai_socktype = SOCK_STREAM,
-        .ai_protocol = IPPROTO_TCP,
-        .ai_addrlen = (socklen_t) 0,
-        .ai_addr = NULL,
-        .ai_canonname = NULL,
-        .ai_next = NULL,
-    };
+    struct addrinfo *hostaddrinfo = NULL;
+    // The order of the struct addrinfo members is not portable,
+    // therefore it is not possible to use struct initialization here.
+    // Use default initialization and set potentially nonzero members explicitly.
+    // See issue #161
+    struct addrinfo hints = {};
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
 
     if (!validated_name.empty()) {
         return true;
@@ -330,20 +329,6 @@ std::string get_dc_host(const std::string &realm_name, const std::string &site_n
     VERBOSE("Found preferred Domain Controller: %s", bestdc.c_str());
 
     return bestdc;
-}
-
-std::string get_host_os()
-{
-    struct utsname info;
-    int ret;
-
-
-    ret = uname(&info);
-    if (ret == -1) {
-        fprintf(stderr, "Error: uname failed (%d)\n", ret);
-        return NULL;
-    }
-    return std::string(info.sysname);
 }
 
 /* Return true if <str> ends with <suffix>, false otherwise */

@@ -376,6 +376,7 @@ static void prune_keytab(KRB5Keytab& keytab, KRB5Principal &principal, krb5_time
 void add_principal_keytab(const std::string &principal, msktutil_flags *flags)
 {
     VERBOSE("Adding principal to keytab: %s", principal.c_str());
+    VERBOSE("Using supportedEncryptionTypes: %d", flags->ad_supportedEncryptionTypes);
     KRB5Keytab keytab(flags->keytab_writename);
 
     std::string principal_string = "";
@@ -395,7 +396,7 @@ void add_principal_keytab(const std::string &principal, msktutil_flags *flags)
 
     prune_keytab(keytab, princ, min_keep_timestamp);
 
-    std::vector<uint32_t> enc_types;
+    std::vector<int32_t> enc_types;
     if (flags->ad_supportedEncryptionTypes & MS_KERB_ENCTYPE_DES_CBC_CRC) {
         enc_types.push_back(ENCTYPE_DES_CBC_CRC);
     }
